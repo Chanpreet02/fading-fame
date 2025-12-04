@@ -15,9 +15,7 @@ class PostListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateStr = post.createdAt == null
-        ? ''
-        : DateFormat('dd MMM yyyy').format(post.createdAt);
+    final dateStr = DateFormat('dd MMM yyyy').format(post.createdAt);
 
     return ListTile(
       onTap: onTap,

@@ -39,7 +39,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     final admin = context.watch<AdminProvider>();
     final auth = context.watch<AuthProvider>();
 
-    if (!(auth.profile?.isStaff ?? false)) {
+    if (!auth.isAdmin) {
       return const Scaffold(
         body: Center(
           child: Text('You are not allowed to access admin panel.'),
@@ -47,8 +47,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       );
     }
 
+
     if (!_initialized || admin.isLoading && admin.categories.isEmpty) {
-      return const Scaffold(
+      return Scaffold(
         body: AppLoader(message: 'Loading admin data...'),
       );
     }

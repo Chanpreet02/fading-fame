@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/post.dart';
@@ -5,6 +7,7 @@ import '../models/post_media.dart';
 import '../../core/constants/api_constants.dart';
 
 class PostRepository {
+  final String kFixedAdminAuthorId = '3a7975c6-e91d-44d0-9940-f759ba16b597';
   final SupabaseClient _client = Supabase.instance.client;
 
   Future<List<Post>> getHomeFeed({int offset = 0}) async {
@@ -63,8 +66,44 @@ class PostRepository {
   }
 
   // Simple admin create/edit – assume RLS allows staff
-  Future<void> createPost(Map<String, dynamic> data) async {
+  Future<void> createPostOld(Map<String, dynamic> data) async {
     await _client.from('posts').insert(data);
+  }
+
+  Future<void> createPost({
+    required String title,
+    required String excerpt,
+    required String content,
+    required int categoryId,
+    String? coverImageUrl,
+  }) async {
+    await _client.from('posts').insert({
+      'title': title,
+      'slug': title.toLowerCase().replaceAll(' ', '-'),
+      'excerpt': excerpt,
+      'content': content,
+      'category_id': categoryId,
+      'author_id': kFixedAdminAuthorId,
+      'status': 'published',
+      'cover_image_url': coverImageUrl,
+      'published_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<String> uploadCoverImage(Uint8List bytes, String filename) async {
+    final path = 'covers/$filename';
+    final storage = _client.storage.from('post-media');
+
+    await storage.uploadBinary(
+      path,
+      bytes,
+      fileOptions: const FileOptions(
+        cacheControl: '3600',
+        upsert: false,
+      ),
+    );
+
+    return storage.getPublicUrl(path);
   }
 
   Future<void> updatePost(int id, Map<String, dynamic> data) async {

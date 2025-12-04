@@ -2,83 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/admin_provider.dart';
-import '../../widgets/admin/category_list_item.dart';
+import '../../widgets/admin/post_list_item.dart';
 
-class ManageCategoriesScreen extends StatefulWidget {
-  const ManageCategoriesScreen({super.key});
-
-  @override
-  State<ManageCategoriesScreen> createState() =>
-      _ManageCategoriesScreenState();
-}
-
-class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
-  final _nameController = TextEditingController();
-  final _slugController = TextEditingController();
-  final _descController = TextEditingController();
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _slugController.dispose();
-    _descController.dispose();
-    super.dispose();
-  }
-
-  void _showCreateDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Create Category'),
-        content: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-              ),
-              TextField(
-                controller: _slugController,
-                decoration: const InputDecoration(labelText: 'Slug'),
-              ),
-              TextField(
-                controller: _descController,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              _nameController.clear();
-              _slugController.clear();
-              _descController.clear();
-              Navigator.pop(context);
-            },
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final admin = context.read<AdminProvider>();
-              await admin.createCategory(
-                name: _nameController.text.trim(),
-                slug: _slugController.text.trim(),
-                description: _descController.text.trim().isEmpty
-                    ? null
-                    : _descController.text.trim(),
-              );
-              _nameController.clear();
-              _slugController.clear();
-              _descController.clear();
-              if (context.mounted) Navigator.pop(context);
-            },
-            child: const Text('Create'),
-          ),
-        ],
-      ),
-    );
-  }
+class ManagePostsScreen extends StatelessWidget {
+  const ManagePostsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -91,21 +18,34 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
           child: Align(
             alignment: Alignment.centerRight,
             child: ElevatedButton.icon(
-              onPressed: _showCreateDialog,
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                        'Post creation UI can be implemented here (form + image upload).'),
+                  ),
+                );
+              },
               icon: const Icon(Icons.add),
-              label: const Text('New Category'),
+              label: const Text('Create Post'),
             ),
           ),
         ),
         Expanded(
           child: ListView.builder(
-            itemCount: admin.categories.length,
+            itemCount: admin.posts.length,
             itemBuilder: (context, index) {
-              final cat = admin.categories[index];
-              return CategoryListItem(
-                category: cat,
-                onToggleVisibility: () =>
-                    admin.toggleCategoryVisibility(cat),
+              final post = admin.posts[index];
+              return PostListItem(
+                post: post,
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                          'Post edit screen can be implemented here.'),
+                    ),
+                  );
+                },
               );
             },
           ),

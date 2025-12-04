@@ -6,7 +6,7 @@ class AppNetworkImage extends StatelessWidget {
   final double? height;
   final double? width;
   final BoxFit fit;
-  final BorderRadius? borderRadius;
+  final BorderRadiusGeometry? borderRadius;
 
   const AppNetworkImage({
     super.key,
@@ -39,7 +39,7 @@ class AppNetworkImage extends StatelessWidget {
 
     if (borderRadius != null) {
       return ClipRRect(
-        borderRadius: borderRadius,
+        borderRadius: borderRadius!,
         child: SizedBox(
           height: height,
           width: width,

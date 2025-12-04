@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/app_routes.dart';
 import '../../../providers/auth_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -9,7 +10,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final profile = auth.profile;
+    final user = auth.user;
 
     return Scaffold(
       appBar: AppBar(
@@ -17,33 +18,54 @@ class ProfileScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: Column(
+        child: user == null
+            ? Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (profile != null) ...[
-              CircleAvatar(
-                radius: 36,
-                child: Text(
-                  (profile.fullName ?? 'User')
-                      .trim()
-                      .split(' ')
-                      .map((e) => e.isNotEmpty ? e[0] : '')
-                      .take(2)
-                      .join(),
-                ),
+            const Text('You are browsing as a visitor.'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                // login screen pe bhejna ho to:
+                Navigator.pushNamed(context, '/login');
+              },
+              child: const Text('Login / Sign up'),
+            ),
+          ],
+        )
+            : Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 36,
+              child: Text(
+                user.fullName.isNotEmpty
+                    ? user.fullName[0].toUpperCase()
+                    : user.email[0].toUpperCase(),
               ),
-              const SizedBox(height: 16),
-              Text(
-                profile.fullName ?? 'Anonymous',
-                style:
-                const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              user.fullName,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 8),
-              Text('Role: ${profile.role}'),
-            ] else
-              const Text('No profile data'),
+            ),
+            const SizedBox(height: 8),
+            Text(user.email),
+            const SizedBox(height: 8),
+            Text('Role: ${user.role}'),
             const Spacer(),
             ElevatedButton.icon(
-              onPressed: () => auth.signOut(),
+              onPressed: () {
+                auth.logout();
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.home,
+                      (route) => false,
+                );
+              },
               icon: const Icon(Icons.logout),
               label: const Text('Sign out'),
             ),

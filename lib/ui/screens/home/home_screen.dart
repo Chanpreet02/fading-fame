@@ -30,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final postProvider = context.read<PostProvider>();
     if (!_scrollController.hasClients || postProvider.isHomeLoading) return;
 
-    final threshold = 300.0;
+    const threshold = 300.0;
     if (_scrollController.position.extentAfter < threshold &&
         postProvider.hasMoreHome) {
       postProvider.loadHomeFeed();
@@ -44,8 +44,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openPostDetail(Post post) {
-    Navigator.pushNamed(context, AppRoutes.postDetail,
-        arguments: {'postId': post.id});
+    Navigator.pushNamed(
+      context,
+      AppRoutes.postDetail,
+      arguments: {'postId': post.id},
+    );
   }
 
   @override
@@ -58,6 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Fading Fame'),
         actions: [
+          // Admin dashboard icon – sirf admin / client ko dikhega
           if (auth.isAdmin)
             IconButton(
               onPressed: () {
@@ -65,12 +69,36 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               icon: const Icon(Icons.admin_panel_settings),
             ),
-          IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.profile);
-            },
-            icon: const Icon(Icons.person),
-          ),
+
+          // Agar logged in ho to profile icon, warna "Login" button
+          if (auth.isLoggedIn) ...[
+            IconButton(
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.profile);
+              },
+              icon: const Icon(Icons.person),
+            ),
+          ] else ...[
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.login);
+              },
+              child: const Text('Login / Sign up'),
+            ),
+          ],
+
+          // Post create screen – agar sab ke liye allow karna hai
+          // to yahan se auth.isAdmin hata sakta hai
+          if (auth.isAdmin)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRoutes.createPost);
+                },
+                child: const Text('Add Post'),
+              ),
+            ),
         ],
       ),
       body: Column(

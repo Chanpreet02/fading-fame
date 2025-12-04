@@ -25,7 +25,7 @@ class FadingFameApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()..init(),),
         ChangeNotifierProvider(create: (_) => CategoryProvider()..loadCategories()),
         ChangeNotifierProvider(create: (_) => PostProvider()..loadHomeFeed()),
         ChangeNotifierProvider(create: (_) => AdminProvider()),
