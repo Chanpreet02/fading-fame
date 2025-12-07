@@ -1,3 +1,5 @@
+// lib/ui/screens/admin/create_post_screen.dart
+
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -6,6 +8,7 @@ import 'package:provider/provider.dart';
 
 import '../../../providers/category_provider.dart';
 import '../../../data/repositories/post_repository.dart';
+import '../../../providers/post_provider.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -19,9 +22,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   final _titleCtrl = TextEditingController();
   final _excerptCtrl = TextEditingController();
   final _contentCtrl = TextEditingController();
+
   int? _selectedCategoryId;
-  Uint8List? _imageBytes;
-  String? _imageName;
+
+  /// Multi-image support
+  final List<Uint8List> _imageBytesList = [];
+  final List<String> _imageNameList = [];
+
   bool _isSubmitting = false;
   final _repo = PostRepository();
 
@@ -33,17 +40,22 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImages() async {
     final picker = ImagePicker();
-    final file = await picker.pickImage(source: ImageSource.gallery);
-    if (file == null) return;
+    final files = await picker.pickMultiImage();
 
-    final bytes = await file.readAsBytes();
+    if (files.isEmpty) return;
 
-    setState(() {
-      _imageBytes = bytes;
-      _imageName = file.name;
-    });
+    _imageBytesList.clear();
+    _imageNameList.clear();
+
+    for (final file in files) {
+      final bytes = await file.readAsBytes();
+      _imageBytesList.add(bytes);
+      _imageNameList.add(file.name);
+    }
+
+    setState(() {});
   }
 
   Future<void> _submit() async {
@@ -58,21 +70,19 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      String? coverUrl;
-      if (_imageBytes != null && _imageName != null) {
-        coverUrl = await _repo.uploadCoverImage(
-          _imageBytes!,
-          _imageName!,
-        );
-      }
-
-      await _repo.createPost(
+      await _repo.createPostWithMedia(
         title: _titleCtrl.text.trim(),
         excerpt: _excerptCtrl.text.trim(),
         content: _contentCtrl.text.trim(),
         categoryId: _selectedCategoryId!,
-        coverImageUrl: coverUrl,
+        imagesBytes: List<Uint8List>.from(_imageBytesList),
+        imageNames: List<String>.from(_imageNameList),
       );
+      if (mounted) {
+        await context
+            .read<PostProvider>()
+            .loadHomeFeed(refresh: true);
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -150,23 +160,85 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     v == null || v.isEmpty ? 'Required' : null,
                   ),
                   const SizedBox(height: 16),
+
+                  /// Image picker + thumbnails
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Images (Please select up to 3)',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
                       ElevatedButton.icon(
-                        onPressed: _pickImage,
+                        onPressed: _pickImages,
                         icon: const Icon(Icons.image),
-                        label: const Text('Pick cover image'),
+                        label: const Text('Pick images'),
                       ),
                       const SizedBox(width: 12),
-                      if (_imageName != null)
+                      if (_imageNameList.isNotEmpty)
                         Expanded(
                           child: Text(
-                            _imageName!,
+                            '${_imageNameList.length} image(s) selected',
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                     ],
                   ),
+                  const SizedBox(height: 8),
+                  if (_imageBytesList.isNotEmpty)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: List.generate(_imageBytesList.length, (i) {
+                          return Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Image.memory(
+                                  _imageBytesList[i],
+                                  height: 80,
+                                  width: 80,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 2,
+                                right: 2,
+                                child: InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _imageBytesList.removeAt(i);
+                                      _imageNameList.removeAt(i);
+                                    });
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.black54,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: const EdgeInsets.all(2),
+                                    child: const Icon(
+                                      Icons.close,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }),
+                      ),
+                    ),
+
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,

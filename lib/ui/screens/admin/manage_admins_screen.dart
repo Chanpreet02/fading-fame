@@ -1,16 +1,18 @@
+// lib/ui/screens/admin/manage_admins_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/models/app_user.dart';
+import '../../../data/models/user_profile.dart';
 import '../../../providers/admin_provider.dart';
 import '../../../providers/auth_provider.dart';
 
 class ManageAdminsScreen extends StatelessWidget {
   const ManageAdminsScreen({super.key});
 
-  void _changeRole(
+  Future<void> _changeRole(
       BuildContext context,
-      AppUser user,
+      UserProfile user,      // ✅ yahan AppUser ki jagah UserProfile
       String newRole,
       ) async {
     final admin = context.read<AdminProvider>();
@@ -23,17 +25,18 @@ class ManageAdminsScreen extends StatelessWidget {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final admin = context.watch<AdminProvider>();
     final auth = context.watch<AuthProvider>();
 
+    // jo custom login ka user hai (AppUser)
     final currentUserId = auth.user?.id;
 
-    // Hide your own account
-    final userList =
-    admin.users.where((u) => u.id != currentUserId).toList();
+    // apna khud ka account hide karne ke liye
+    final List<UserProfile> userList = currentUserId == null
+        ? admin.users
+        : admin.users.where((u) => u.id != currentUserId).toList();
 
     return ListView.builder(
       itemCount: userList.length,
@@ -45,9 +48,18 @@ class ManageAdminsScreen extends StatelessWidget {
           trailing: PopupMenuButton<String>(
             onSelected: (value) => _changeRole(context, user, value),
             itemBuilder: (context) => const [
-              PopupMenuItem(value: 'visitor', child: Text('Visitor')),
-              PopupMenuItem(value: 'coadmin', child: Text('Co-admin')),
-              PopupMenuItem(value: 'admin', child: Text('Admin')),
+              PopupMenuItem(
+                value: 'visitor',
+                child: Text('Visitor'),
+              ),
+              PopupMenuItem(
+                value: 'coadmin',
+                child: Text('Co-admin'),
+              ),
+              PopupMenuItem(
+                value: 'admin',
+                child: Text('Admin'),
+              ),
             ],
           ),
         );

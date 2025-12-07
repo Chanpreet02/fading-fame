@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/app_routes.dart';
+import '../../../core/constants/app_text_styles.dart';
 import '../../../providers/auth_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -16,60 +16,62 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Profile'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: user == null
-            ? Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('You are browsing as a visitor.'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                // login screen pe bhejna ho to:
-                Navigator.pushNamed(context, '/login');
-              },
-              child: const Text('Login / Sign up'),
-            ),
-          ],
-        )
-            : Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              radius: 36,
-              child: Text(
-                user.fullName.isNotEmpty
-                    ? user.fullName[0].toUpperCase()
-                    : user.email[0].toUpperCase(),
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircleAvatar(
+                        radius: 34,
+                        child: Text(
+                          (user?.fullName ?? 'User')
+                              .trim()
+                              .split(' ')
+                              .map((e) => e.isNotEmpty ? e[0] : '')
+                              .take(2)
+                              .join(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        user?.fullName ?? 'Anonymous visitor',
+                        style: AppTextStyles.h5,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        user?.email ?? '',
+                        style: AppTextStyles.body2,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Role: ${user?.role ?? 'visitor'}',
+                        style: AppTextStyles.body2,
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.logout),
+                          label: const Text('Sign out'),
+                          onPressed: () {
+                            auth.logout();
+                            Navigator.pop(context);
+                          },
+                        ),
+                      )
+                    ],
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              user.fullName,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(user.email),
-            const SizedBox(height: 8),
-            Text('Role: ${user.role}'),
-            const Spacer(),
-            ElevatedButton.icon(
-              onPressed: () {
-                auth.logout();
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  AppRoutes.home,
-                      (route) => false,
-                );
-              },
-              icon: const Icon(Icons.logout),
-              label: const Text('Sign out'),
-            ),
-          ],
+          ),
         ),
       ),
     );
