@@ -1,0 +1,16 @@
+<svg width="360" height="240" viewBox="0 0 360 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- shadow -->
+    <ellipse cx="180" cy="205" rx="95" ry="15" fill="#E6E6E6"/>
+
+    <!-- card -->
+    <rect x="110" y="70" width="140" height="110" rx="16" fill="#F8F9FA" stroke="#DEE2E6"/>
+
+    <!-- avatar -->
+    <circle cx="180" cy="105" r="20" fill="#ADB5BD"/>
+    <rect x="150" y="135" width="60" height="14" rx="7" fill="#ADB5BD"/>
+
+    <!-- alert -->
+    <circle cx="240" cy="85" r="16" fill="#FFF3BF"/>
+    <rect x="238" y="78" width="4" height="16" rx="2" fill="#F59F00"/>
+    <rect x="238" y="98" width="4" height="4" rx="2" fill="#F59F00"/>
+</svg>

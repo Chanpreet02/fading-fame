@@ -14,12 +14,19 @@ class CategoryListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(category.name),
-      subtitle: Text(category.slug),
-      trailing: Switch(
-        value: category.isVisible,
-        onChanged: (_) => onToggleVisibility(),
+    return Material(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white
+        ),
+        child: ListTile(
+          title: Text(category.name),
+          subtitle: Text(category.slug),
+          trailing: Switch(
+            value: category.isVisible,
+            onChanged: (_) => onToggleVisibility(),
+          ),
+        ),
       ),
     );
   }

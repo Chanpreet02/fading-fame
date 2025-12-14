@@ -44,6 +44,7 @@ dependencies:
   flutter_dotenv: ^6.0.0
   image_picker: ^1.2.1
   shared_preferences: ^2.5.3
+  flutter_svg: ^2.2.3
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +62,9 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  assets:
+    - assets/images/
+    - assets/
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

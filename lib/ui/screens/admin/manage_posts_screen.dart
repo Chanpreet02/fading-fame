@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/app_routes.dart';
 import '../../../data/models/post.dart';
 import '../../../providers/admin_provider.dart';
 import '../../widgets/admin/post_list_item.dart';
@@ -68,13 +69,7 @@ class ManagePostsScreen extends StatelessWidget {
             alignment: Alignment.centerRight,
             child: ElevatedButton.icon(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Post creation UI can be implemented here (form + image upload).',
-                    ),
-                  ),
-                );
+                Navigator.pushNamed(context, AppRoutes.createPost);
               },
               icon: const Icon(Icons.add),
               label: const Text('Create Post'),

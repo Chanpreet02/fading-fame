@@ -49,7 +49,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     _imageBytesList.clear();
     _imageNameList.clear();
 
-    for (final file in files) {
+    for (final file in files.take(3)) {
       final bytes = await file.readAsBytes();
       _imageBytesList.add(bytes);
       _imageNameList.add(file.name);
@@ -58,8 +58,16 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     setState(() {});
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit(List categories) async {
+    if (categories.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please add category first')),
+      );
+      return;
+    }
+
     if (!_formKey.currentState!.validate()) return;
+
     if (_selectedCategoryId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a category')),
@@ -78,10 +86,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         imagesBytes: List<Uint8List>.from(_imageBytesList),
         imageNames: List<String>.from(_imageNameList),
       );
+
       if (mounted) {
-        await context
-            .read<PostProvider>()
-            .loadHomeFeed(refresh: true);
+        await context.read<PostProvider>().loadHomeFeed(refresh: true);
       }
 
       if (!mounted) return;
@@ -103,7 +110,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = Provider.of<CategoryProvider>(context).categories;
+    final categories = context.watch<CategoryProvider>().categories;
 
     return Scaffold(
       appBar: AppBar(
@@ -125,6 +132,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     v == null || v.isEmpty ? 'Required' : null,
                   ),
                   const SizedBox(height: 12),
+
                   TextFormField(
                     controller: _excerptCtrl,
                     decoration:
@@ -132,7 +140,18 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     maxLines: 2,
                   ),
                   const SizedBox(height: 12),
-                  DropdownButtonFormField<int>(
+
+                  /// CATEGORY DROPDOWN (SAFE)
+                  categories.isEmpty
+                      ? DropdownButtonFormField<int>(
+                    items: const [],
+                    onChanged: null,
+                    decoration: const InputDecoration(
+                      labelText: 'Category',
+                      hintText: 'Please add category first',
+                    ),
+                  )
+                      : DropdownButtonFormField<int>(
                     value: _selectedCategoryId,
                     items: categories
                         .map(
@@ -145,12 +164,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     onChanged: (v) {
                       setState(() => _selectedCategoryId = v);
                     },
-                    decoration:
-                    const InputDecoration(labelText: 'Category'),
-                    validator: (v) =>
-                    v == null ? 'Select a category' : null,
+                    decoration: const InputDecoration(
+                      labelText: 'Category',
+                    ),
                   ),
+
                   const SizedBox(height: 12),
+
                   TextFormField(
                     controller: _contentCtrl,
                     decoration:
@@ -159,9 +179,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     validator: (v) =>
                     v == null || v.isEmpty ? 'Required' : null,
                   ),
+
                   const SizedBox(height: 16),
 
-                  /// Image picker + thumbnails
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -173,6 +193,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
+
                   Row(
                     children: [
                       ElevatedButton.icon(
@@ -190,7 +211,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         ),
                     ],
                   ),
+
                   const SizedBox(height: 8),
+
                   if (_imageBytesList.isNotEmpty)
                     Align(
                       alignment: Alignment.centerLeft,
@@ -240,10 +263,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     ),
 
                   const SizedBox(height: 24),
+
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _isSubmitting ? null : _submit,
+                      onPressed:
+                      _isSubmitting ? null : () => _submit(categories),
                       child: Text(
                         _isSubmitting ? 'Creating...' : 'Create Post',
                       ),

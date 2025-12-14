@@ -1,0 +1,18 @@
+<svg width="360" height="240" viewBox="0 0 360 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- shadow -->
+    <ellipse cx="180" cy="205" rx="100" ry="16" fill="#E6E6E6"/>
+
+    <!-- paper back -->
+    <rect x="120" y="60" width="120" height="150" rx="12" fill="#DEE2E6"/>
+
+    <!-- paper front -->
+    <rect x="100" y="70" width="120" height="150" rx="12" fill="#FFFFFF" stroke="#CED4DA"/>
+
+    <!-- lines -->
+    <rect x="120" y="100" width="80" height="8" rx="4" fill="#ADB5BD"/>
+    <rect x="120" y="120" width="60" height="8" rx="4" fill="#ADB5BD"/>
+
+    <!-- red cross -->
+    <circle cx="220" cy="80" r="18" fill="#FFE3E3"/>
+    <path d="M212 72L228 88M228 72L212 88" stroke="#E03131" stroke-width="4" stroke-linecap="round"/>
+</svg>

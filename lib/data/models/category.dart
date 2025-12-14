@@ -3,14 +3,14 @@ class Category {
   final String name;
   final String slug;
   final String? description;
-  final bool isVisible;
+  bool isVisible;
 
-  const Category({
+  Category({
     required this.id,
     required this.name,
     required this.slug,
     this.description,
-    required this.isVisible,
+    this.isVisible = true,
   });
 
   factory Category.fromMap(Map<String, dynamic> map) {

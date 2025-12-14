@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/commonMethods/createCategory.dart';
 import '../../../providers/admin_provider.dart';
 import '../../widgets/admin/category_list_item.dart';
 
@@ -14,70 +15,13 @@ class ManageCategoriesScreen extends StatefulWidget {
 
 class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
   final _nameController = TextEditingController();
-  final _slugController = TextEditingController();
   final _descController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
-    _slugController.dispose();
     _descController.dispose();
     super.dispose();
-  }
-
-  void _showCreateDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Create Category'),
-        content: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-              ),
-              TextField(
-                controller: _slugController,
-                decoration: const InputDecoration(labelText: 'Slug'),
-              ),
-              TextField(
-                controller: _descController,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              _nameController.clear();
-              _slugController.clear();
-              _descController.clear();
-              Navigator.pop(context);
-            },
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final admin = context.read<AdminProvider>();
-              await admin.createCategory(
-                name: _nameController.text.trim(),
-                slug: _slugController.text.trim(),
-                description: _descController.text.trim().isEmpty
-                    ? null
-                    : _descController.text.trim(),
-              );
-              _nameController.clear();
-              _slugController.clear();
-              _descController.clear();
-              if (context.mounted) Navigator.pop(context);
-            },
-            child: const Text('Create'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -86,19 +30,34 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
 
     return Column(
       children: [
+        /// 🔹 TOP ACTION
         Padding(
           padding: const EdgeInsets.all(12.0),
           child: Align(
             alignment: Alignment.centerRight,
             child: ElevatedButton.icon(
-              onPressed: _showCreateDialog,
+              onPressed: () => showCreateDialog(
+                nameController: _nameController,
+                descController: _descController,
+                context: context,
+              ),
               icon: const Icon(Icons.add),
               label: const Text('New Category'),
             ),
           ),
         ),
+
+        /// 🔹 CONTENT
         Expanded(
-          child: ListView.builder(
+          child: admin.categories.isEmpty
+              ? _EmptyCategoriesView(
+            onCreate: () => showCreateDialog(
+              nameController: _nameController,
+              descController: _descController,
+              context: context,
+            ),
+          )
+              : ListView.builder(
             itemCount: admin.categories.length,
             itemBuilder: (context, index) {
               final cat = admin.categories[index];
@@ -111,6 +70,54 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+class _EmptyCategoriesView extends StatelessWidget {
+  final VoidCallback onCreate;
+
+  const _EmptyCategoriesView({required this.onCreate});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.folder_open,
+              size: 72,
+              color: Colors.grey,
+            ),
+            const SizedBox(height: 16),
+
+            Text(
+              'No categories yet',
+              style: theme.textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+
+            Text(
+              'Create a category to organize your posts.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 24),
+
+            ElevatedButton.icon(
+              onPressed: onCreate,
+              icon: const Icon(Icons.add),
+              label: const Text('Create category'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

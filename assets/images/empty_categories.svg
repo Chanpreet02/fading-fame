@@ -1,0 +1,39 @@
+<svg width="360" height="260" viewBox="0 0 360 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+    <!-- Background -->
+    <rect width="360" height="260" rx="24" fill="#F5F7FB"/>
+
+    <!-- Shadow -->
+    <ellipse cx="180" cy="205" rx="110" ry="14" fill="#E1E6EF"/>
+
+    <!-- Plant -->
+    <path d="M78 170C60 145 70 120 88 112C92 136 98 152 110 168Z" fill="#7BC96F"/>
+    <path d="M92 172C90 140 110 118 130 112C124 140 120 156 118 172Z" fill="#5DBB63"/>
+    <rect x="82" y="172" width="36" height="18" rx="4" fill="#C68642"/>
+
+    <!-- Folder -->
+    <path d="M120 108C120 99.163 127.163 92 136 92H190L206 108H244C252.837 108 260 115.163 260 124V176C260 184.837 252.837 192 244 192H136C127.163 192 120 184.837 120 176V108Z"
+        fill="#FFC247"/>
+
+    <!-- Folder inner shadow -->
+    <path d="M120 132H260V124C260 115.163 252.837 108 244 108H206L190 92H136C127.163 92 120 99.163 120 108V132Z"
+        fill="#F4B53F"/>
+
+    <!-- Folder face -->
+    <circle cx="165" cy="145" r="4" fill="#E0961F"/>
+    <circle cx="190" cy="145" r="4" fill="#E0961F"/>
+    <path d="M170 156C175 160 180 160 185 156" stroke="#E0961F" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- No data badge -->
+    <circle cx="140" cy="110" r="18" fill="white"/>
+    <path d="M134 104L146 116M146 104L134 116"
+        stroke="#E53935" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Text -->
+    <text x="180" y="232" text-anchor="middle"
+        fill="#8A94A6" font-size="14"
+        font-family="Inter, Arial, sans-serif">
+        No categories added yet
+    </text>
+
+</svg>
