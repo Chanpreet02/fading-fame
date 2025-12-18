@@ -8,8 +8,14 @@ import '../models/post_media.dart';
 import '../../core/constants/api_constants.dart';
 
 class PostRepository {
+  /// Fixed admin author (as per your setup)
   final String kFixedAdminAuthorId = '3a7975c6-e91d-44d0-9940-f759ba16b597';
+
   final SupabaseClient _client = Supabase.instance.client;
+
+  /* -------------------------------------------------------------------------- */
+  /*                               FETCH POSTS                                  */
+  /* -------------------------------------------------------------------------- */
 
   Future<List<Post>> getHomeFeed({int offset = 0}) async {
     final response = await _client
@@ -66,12 +72,11 @@ class PostRepository {
     return post.copyWith(media: media);
   }
 
-  /// Old simple create (single cover) – agar kahin aur use ho raha ho to safe rahe
-  Future<void> createPostOld(Map<String, dynamic> data) async {
-    await _client.from('posts').insert(data);
-  }
+  /* -------------------------------------------------------------------------- */
+  /*                             CREATE POST (OLD)                               */
+  /* -------------------------------------------------------------------------- */
 
-  /// Pehle jaisa single-cover create (compatibility ke liye)
+  /// Old single-cover create (safe for backward compatibility)
   Future<void> createPost({
     required String title,
     required String excerpt,
@@ -81,7 +86,7 @@ class PostRepository {
   }) async {
     await _client.from('posts').insert({
       'title': title,
-      'slug': title.toLowerCase().replaceAll(' ', '-'),
+      'slug': _slugify(title),
       'excerpt': excerpt,
       'content': content,
       'category_id': categoryId,
@@ -92,7 +97,13 @@ class PostRepository {
     });
   }
 
-  /// Naya flow: ek post me multiple images
+  /* -------------------------------------------------------------------------- */
+  /*                    CREATE POST WITH MULTIPLE IMAGES                         */
+  /* -------------------------------------------------------------------------- */
+
+  /// ✅ Duplicate images ALLOWED
+  /// ✅ Duplicate filenames ALLOWED
+  /// ✅ Every image gets a UNIQUE storage path
   Future<void> createPostWithMedia({
     required String title,
     required String excerpt,
@@ -101,12 +112,12 @@ class PostRepository {
     required List<Uint8List> imagesBytes,
     required List<String> imageNames,
   }) async {
-    // 1) Pehle post row create karo (cover_image_url abhi null rahega)
+    /// 1️⃣ Create post first
     final postData = await _client
         .from('posts')
         .insert({
       'title': title,
-      'slug': title.toLowerCase().replaceAll(' ', '-'),
+      'slug': _slugify(title),
       'excerpt': excerpt,
       'content': content,
       'category_id': categoryId,
@@ -117,23 +128,23 @@ class PostRepository {
         .select()
         .single();
 
-    final postId = postData['id'] as int;
+    final int postId = postData['id'];
 
-    if (imagesBytes.isEmpty) {
-      // koi image nahi – bas post hi rehne do
-      return;
-    }
+    if (imagesBytes.isEmpty) return;
 
     final storage = _client.storage.from('post-media');
     String? firstImageUrl;
 
-    // 2) Saari images upload karo + post_media me insert karo
-    for (var i = 0; i < imagesBytes.length; i++) {
-      final bytes = imagesBytes[i];
-      final name = imageNames[i];
+    /// 2️⃣ Upload each image + insert into post_media
+    for (int i = 0; i < imagesBytes.length; i++) {
+      final Uint8List bytes = imagesBytes[i];
+      final String originalName = imageNames[i];
 
-      final path =
-          'posts/$postId/${DateTime.now().millisecondsSinceEpoch}_$i\_$name';
+      /// 🔥 UNIQUE PATH (duplicate safe)
+      final String uniqueFileName =
+          '${DateTime.now().millisecondsSinceEpoch}_$i\_$originalName';
+
+      final String path = 'posts/$postId/$uniqueFileName';
 
       await storage.uploadBinary(
         path,
@@ -144,31 +155,40 @@ class PostRepository {
         ),
       );
 
-      final url = storage.getPublicUrl(path);
+      final String publicUrl = storage.getPublicUrl(path);
 
-      // first image ka url cover ke liye store
-      firstImageUrl ??= url;
+      firstImageUrl ??= publicUrl;
 
       await _client.from('post_media').insert({
         'post_id': postId,
-        'media_url': url,
+        'media_url': publicUrl,
         'media_type': 'image',
         'position': i,
       });
     }
 
-    // 3) posts table me cover_image_url update karo (pehli image se)
+    /// 3️⃣ Update cover image using first image
     if (firstImageUrl != null) {
       await _client
           .from('posts')
-          .update({'cover_image_url': firstImageUrl}).eq('id', postId);
+          .update({'cover_image_url': firstImageUrl})
+          .eq('id', postId);
     }
   }
 
-  /// Single image upload helper (old use-cases ke liye)
+  /* -------------------------------------------------------------------------- */
+  /*                         SINGLE IMAGE UPLOAD (SAFE)                          */
+  /* -------------------------------------------------------------------------- */
+
+  /// Used for legacy flows
+  /// ✅ Duplicate filenames allowed
   Future<String> uploadCoverImage(Uint8List bytes, String filename) async {
-    final path = 'covers/$filename';
     final storage = _client.storage.from('post-media');
+
+    final uniqueName =
+        '${DateTime.now().millisecondsSinceEpoch}_$filename';
+
+    final path = 'covers/$uniqueName';
 
     await storage.uploadBinary(
       path,
@@ -182,11 +202,14 @@ class PostRepository {
     return storage.getPublicUrl(path);
   }
 
+  /* -------------------------------------------------------------------------- */
+  /*                             UPDATE / DELETE                                 */
+  /* -------------------------------------------------------------------------- */
+
   Future<void> updatePost(int id, Map<String, dynamic> data) async {
     await _client.from('posts').update(data).eq('id', id);
   }
 
-  /// 🔥 NEW: delete a post (admin dashboard)
   Future<void> deletePost(int id) async {
     await _client.from('posts').delete().eq('id', id);
   }
@@ -200,5 +223,17 @@ class PostRepository {
     return (response as List)
         .map((e) => Post.fromMap(Map<String, dynamic>.from(e)))
         .toList();
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                HELPERS                                     */
+  /* -------------------------------------------------------------------------- */
+
+  String _slugify(String text) {
+    return text
+        .toLowerCase()
+        .trim()
+        .replaceAll(RegExp(r'[^\w\s-]'), '')
+        .replaceAll(RegExp(r'\s+'), '-');
   }
 }

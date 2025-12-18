@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../ui/screens/admin/create_post_screen.dart';
+import '../ui/screens/reset_password_screen/reset_password_screen.dart';
 import '../ui/screens/splash/splash_screen.dart';
 import '../ui/screens/auth/login_screen.dart';
 import '../ui/screens/home/home_screen.dart';
@@ -18,6 +19,7 @@ class AppRoutes {
   static const profile = '/profile';
   static const adminDashboard = '/admin';
   static const createPost = '/admin/create-post';
+  static const resetPassword = '/reset-password';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -43,6 +45,8 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const ProfileScreen());
       case adminDashboard:
         return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
+      case resetPassword:
+        return MaterialPageRoute (builder: (_) => const ResetPasswordScreen());
       case createPost:
         return MaterialPageRoute(
           builder: (_) => const CreatePostScreen(),

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -7,6 +8,7 @@ import '../data/models/post.dart';
 import '../data/models/user_profile.dart';
 import '../data/repositories/category_repository.dart';
 import '../data/repositories/post_repository.dart';
+import 'category_provider.dart';
 import 'post_provider.dart';
 
 class AdminProvider extends ChangeNotifier {
@@ -28,9 +30,20 @@ class AdminProvider extends ChangeNotifier {
   List<Post> get posts => _posts;
   List<UserProfile> get users => _users;
 
-  /// ✅ CORRECT ADMIN LIST (THIS FIXES YOUR BUG)
   List<UserProfile> get admins =>
       _users.where((u) => u.role == 'admin').toList();
+
+  /* ---------------- AUTH SESSION FIX ---------------- */
+
+  Future<void> _ensureSessionReady() async {
+    if (_client.auth.currentSession != null) return;
+
+    await _client.auth.onAuthStateChange.firstWhere(
+          (event) => event.session != null,
+    );
+  }
+
+  /* ---------------- LOAD DATA ---------------- */
 
   Future<void> loadAllAdminData() async {
     _isLoading = true;
@@ -53,19 +66,24 @@ class AdminProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> deleteUser(String userId) async {
+  /* ---------------- USER DELETE (FULL) ---------------- */
+
+  Future<void> deleteUserCompletely(String userId) async {
     try {
-      await _client.from('profiles').delete().eq('id', userId);
+      // 🔥 DIRECT DB DELETE (NO EDGE FUNCTION)
+      await _client.from('app_users').delete().eq('id', userId);
+
+      // UI update
       _users.removeWhere((u) => u.id == userId);
       notifyListeners();
     } catch (e) {
-      _error = e.toString();
-      notifyListeners();
+      log('Delete failed: $e');
       rethrow;
     }
   }
 
   Future<void> createCategory({
+    required BuildContext context,
     required String name,
     String? description,
   }) async {
@@ -76,10 +94,9 @@ class AdminProvider extends ChangeNotifier {
       slug: slug,
       description: description,
     );
-
+    await context.read<CategoryProvider>().loadCategories();
     await loadAllAdminData();
   }
-
 
   String _generateSlug(String text) {
     return text
@@ -90,27 +107,23 @@ class AdminProvider extends ChangeNotifier {
   }
 
   Future<void> toggleCategoryVisibility(Category category) async {
-    // 🔥 1. optimistic UI update
     category.isVisible = !category.isVisible;
     notifyListeners();
 
     try {
-      // 🔥 2. backend update
       await _categoryRepo.updateCategoryVisibility(
         category.id,
         category.isVisible,
       );
     } catch (e) {
-      // ❌ rollback if API fails
       category.isVisible = !category.isVisible;
       notifyListeners();
       rethrow;
     }
   }
 
-
   Future<void> changeUserRole(String userId, String role) async {
-    await _client.from('profiles').update({'role': role}).eq('id', userId);
+    await _client.from('app_users').update({'role': role}).eq('id', userId);
     await loadAllAdminData();
   }
 
@@ -123,4 +136,14 @@ class AdminProvider extends ChangeNotifier {
 
     notifyListeners();
   }
+
+  Future<Session> _getSessionOrThrow() async {
+    final client = Supabase.instance.client;
+    final session = client.auth.currentSession;
+    if (session == null) {
+      throw Exception('Auth session not ready. Please try again.');
+    }
+    return session;
+  }
+
 }

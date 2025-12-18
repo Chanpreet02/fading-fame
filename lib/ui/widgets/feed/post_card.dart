@@ -24,90 +24,82 @@ class PostCard extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      hoverColor: Colors.transparent,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+
       child: Card(
+        margin: const EdgeInsets.only(bottom: 16),
         clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image with gradient overlay + title
-            Stack(
-              children: [
-                AppNetworkImage(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // LEFT IMAGE
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: AppNetworkImage(
                   url: post.coverImageUrl,
-                  height: 220,
-                  width: double.infinity,
-                  borderRadius: BorderRadius.zero,
+                  width: 300,
+                  height: 300,
                 ),
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.05),
-                          Colors.black.withOpacity(0.55),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 16,
-                  child: Text(
-                    post.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.h5.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (post.excerpt != null && post.excerpt!.isNotEmpty)
+              ),
+
+              const SizedBox(width: 14),
+
+              // RIGHT CONTENT
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // TITLE (bold like your example)
                     Text(
-                      post.excerpt!,
+                      post.title,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.body2,
+                      style: AppTextStyles.h5,
                     ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Text(
-                        'Fading Fame',
-                        style: AppTextStyles.body2,
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.circle,
-                          size: 4, color: AppColors.textMuted),
-                      const SizedBox(width: 8),
+
+                    const SizedBox(height: 8),
+
+                    // EXCERPT / CONTENT
+                    if (post.excerpt != null && post.excerpt!.isNotEmpty)
                       Text(
-                        dateStr,
+                        post.excerpt!,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.body2,
                       ),
-                      const Spacer(),
-                      const Icon(
-                        Icons.chevron_right,
-                        size: 20,
-                        color: AppColors.textMuted,
-                      ),
-                    ],
-                  )
-                ],
+
+                    const SizedBox(height: 12),
+                    if(post.content!=null ) Text(post.content??'', maxLines: 5,),
+                    const SizedBox(height: 10,),
+                    // META ROW
+                    Row(
+                      children: [
+                        const Text(
+                          'Fading Fame',
+                          style: AppTextStyles.body2,
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(
+                          Icons.circle,
+                          size: 4,
+                          color: AppColors.textMuted,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          dateStr,
+                          style: AppTextStyles.body2,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

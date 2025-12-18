@@ -56,4 +56,9 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     color: AppColors.textSecondary,
   );
+  static const TextStyle caption = TextStyle(
+    fontSize: 12,
+    height: 1.3,
+    color: Colors.grey,
+  );
 }

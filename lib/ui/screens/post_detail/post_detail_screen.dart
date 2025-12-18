@@ -10,6 +10,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../data/models/post.dart';
 import '../../../data/models/post_media.dart';
 import '../../../providers/post_provider.dart';
+import '../../widgets/common/ad_placeholder.dart';
 import '../../widgets/common/app_loader.dart';
 import '../../widgets/common/app_network_image.dart';
 
@@ -188,6 +189,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                         fit: BoxFit.cover,
                       ),
                       const SizedBox(height: 24),
+                      const AdPlaceholder(),
                     ],
 
                     // Meta line
@@ -259,6 +261,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
                     // Main content + inline images (IMAGE 2,3…)
                     ...contentWidgets,
+                    const AdPlaceholder(),
 
                     const SizedBox(height: 40),
                   ],

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -129,11 +131,19 @@ class UserRow extends StatelessWidget {
               backgroundColor: Colors.red,
             ),
             onPressed: () async {
-              Navigator.pop(context);
-              await admin.deleteUser(user.id);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('User deleted')),
-              );
+              try {
+                await admin.deleteUserCompletely(user.id);
+
+                Navigator.pop(context);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('User deleted')),
+                );
+              } catch (_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Delete failed')),
+                );
+              }
             },
             child: const Text('Delete'),
           ),

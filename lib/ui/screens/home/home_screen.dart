@@ -7,6 +7,7 @@ import '../../../data/models/post.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/category_provider.dart';
 import '../../../providers/post_provider.dart';
+import '../../widgets/ads/adsense_banner.dart';
 import '../../widgets/common/app_loader.dart';
 import '../../widgets/common/app_error_view.dart';
 import '../../widgets/common/ad_placeholder.dart';
@@ -72,10 +73,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Row(
                     children: [
-                      Text(
-                        'Fading Fame',
-                        style: AppTextStyles.h4.copyWith(
-                          letterSpacing: -0.3,
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: InkWell(
+                          onTap:(){
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>HomeScreen()));
+                          },
+                          child: Text(
+                            'Fading Fame',
+                            style: AppTextStyles.h4.copyWith(
+                              letterSpacing: -0.3,
+                            ),
+                          ),
                         ),
                       ),
                       const Spacer(),
@@ -190,9 +199,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: AppTextStyles.body2,
                             ),
 
-                            // Ad placeholder below hero
-                            const AdPlaceholder(),
+                            const SizedBox(height: 12),
 
+                            const AdsenseBanner(
+                              adSlot: '1111111111', // change slot here
+                              height: 90,
+                            ),
+
+                            const SizedBox(height: 24),
                             // Post list
                             PostGrid(
                               posts: postProvider.homePosts,

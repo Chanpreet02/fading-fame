@@ -31,7 +31,8 @@ showCreateDialog({required TextEditingController nameController, required TextEd
         ElevatedButton(
           onPressed: () async {
             final admin = context.read<AdminProvider>();
-            await admin.createCategory(
+            await context.read<AdminProvider>().createCategory(
+              context: context,
               name: nameController.text.trim(),
               description: descController.text.trim().isEmpty
                   ? null

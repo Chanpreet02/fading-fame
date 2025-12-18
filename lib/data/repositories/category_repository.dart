@@ -37,6 +37,7 @@ class CategoryRepository {
       'name': name,
       'slug': slug,
       'description': description,
+      'is_visible': true,
     });
   }
 

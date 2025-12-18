@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -13,8 +12,10 @@ import 'providers/admin_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
+
+  // ✅ Supabase init (dart-define based)
   await initSupabase();
+
   runApp(const FadingFameApp());
 }
 
@@ -25,10 +26,18 @@ class FadingFameApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()..init(),),
-        ChangeNotifierProvider(create: (_) => CategoryProvider()..loadCategories()),
-        ChangeNotifierProvider(create: (_) => PostProvider()..loadHomeFeed()),
-        ChangeNotifierProvider(create: (_) => AdminProvider()),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider()..init(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CategoryProvider()..loadCategories(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => PostProvider()..loadHomeFeed(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AdminProvider(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

@@ -2,12 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/models/app_user.dart';
 import '../data/repositories/auth_repository.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthRepository _repo = AuthRepository();
+  final SupabaseClient _supabase = Supabase.instance.client;
 
   static const _userPrefsKey = 'ff_current_user';
 
@@ -109,4 +110,101 @@ class AuthProvider extends ChangeNotifier {
     _clearUserFromPrefs();
     notifyListeners();
   }
+
+  Future<bool> sendPasswordReset(String email) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      await _supabase.auth.resetPasswordForEmail(email);
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final email = _user?.email;
+      if (email == null) {
+        _error = 'User not logged in';
+        return false;
+      }
+
+      /// 🔐 STEP 1: Re-authenticate with OLD password
+      final res = await _supabase.auth.signInWithPassword(
+        email: email,
+        password: oldPassword,
+      );
+
+      if (res.session == null) {
+        _error = 'Old password is incorrect';
+        return false;
+      }
+
+      /// 🔐 STEP 2: Update password
+      await _supabase.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> verifyPasswordAndSendReset({
+    required String oldPassword,
+  }) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final email = user!.email.toLowerCase().trim();
+
+      /// 🔐 VERIFY password via fresh login
+      final res = await _supabase.auth.signInWithPassword(
+        email: email,
+        password: oldPassword,
+      );
+
+      if (res.user == null) {
+        throw 'Invalid password';
+      }
+
+      /// 🔥 IMPORTANT: sign out immediately
+      await _supabase.auth.signOut();
+
+      /// 🔁 Send reset email
+      await _supabase.auth.resetPasswordForEmail(email);
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Current password is incorrect';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+
 }
